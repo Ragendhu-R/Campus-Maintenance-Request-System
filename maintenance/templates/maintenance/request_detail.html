@@ -1,0 +1,209 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Ticket #{{ req_obj.id }} - {{ req_obj.title }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <!-- Top Navigation -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            {% if is_staff %}
+                <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary btn-sm">
+                    <i class="fa-solid fa-arrow-left"></i> Staff Dashboard
+                </a>
+            {% else %}
+                <a href="{% url 'my_requests' %}" class="btn btn-secondary btn-sm">
+                    <i class="fa-solid fa-arrow-left"></i> My Requests
+                </a>
+            {% endif %}
+            <span style="color: var(--text-dim);">/</span>
+            <span style="font-weight: 600; color: var(--primary-accent);">Ticket #{{ req_obj.id }}</span>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+            {% if req_obj.status != 'COMPLETED' or is_staff %}
+                <a href="{% url 'edit_request' req_obj.id %}" class="btn btn-secondary btn-sm">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit
+                </a>
+            {% endif %}
+            <a href="{% url 'delete_request' req_obj.id %}" class="btn btn-danger btn-sm">
+                <i class="fa-solid fa-trash"></i> Delete
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Detail Card -->
+    <div class="card" style="margin-bottom: 2rem;">
+        <div class="ticket-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                    <span class="badge badge-purple">{{ req_obj.get_category_display }}</span>
+                    <span class="priority-tag priority-{{ req_obj.priority }}">{{ req_obj.get_priority_display }} Priority</span>
+                </div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ req_obj.title }}</h1>
+                <div style="display: flex; gap: 1.5rem; color: var(--text-muted); font-size: 0.9rem; flex-wrap: wrap;">
+                    <span><i class="fa-solid fa-location-dot" style="color: #ef4444;"></i> {{ req_obj.location }}</span>
+                    <span><i class="fa-solid fa-calendar-days"></i> Reported {{ req_obj.date_reported|date:"M d, Y @ H:i" }}</span>
+                    <span><i class="fa-solid fa-user"></i> By {{ req_obj.user.first_name|default:req_obj.user.username }}</span>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <span class="badge badge-{{ req_obj.status_color_class }}" style="font-size: 1rem; padding: 0.5rem 1rem;">
+                    {% if req_obj.status == 'PENDING' %}<i class="fa-solid fa-clock"></i>
+                    {% elif req_obj.status == 'IN_PROGRESS' %}<i class="fa-solid fa-gear fa-spin"></i>
+                    {% elif req_obj.status == 'COMPLETED' %}<i class="fa-solid fa-check-double"></i>
+                    {% else %}<i class="fa-solid fa-ban"></i>{% endif %}
+                    {{ req_obj.get_status_display }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Progress Tracker Bar -->
+        <div style="margin: 2rem 0; padding: 1.25rem; background: rgba(15, 23, 42, 0.5); border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">
+                Maintenance Status Stepper
+            </div>
+
+            <div style="display: flex; justify-content: space-between; position: relative;">
+                <div style="flex: 1; text-align: center; position: relative;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary-accent); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-size: 0.9rem; font-weight: 700;">1</div>
+                    <div style="font-size: 0.85rem; font-weight: 600;">Reported</div>
+                </div>
+
+                <div style="flex: 1; text-align: center; position: relative;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: {% if req_obj.status != 'PENDING' %}var(--primary-accent){% else %}var(--bg-card){% endif %}; color: #fff; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-size: 0.9rem; font-weight: 700;">2</div>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: {% if req_obj.status != 'PENDING' %}#fff{% else %}var(--text-muted){% endif %};">Under Review</div>
+                </div>
+
+                <div style="flex: 1; text-align: center; position: relative;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: {% if req_obj.status == 'IN_PROGRESS' or req_obj.status == 'COMPLETED' %}var(--primary-accent){% else %}var(--bg-card){% endif %}; color: #fff; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-size: 0.9rem; font-weight: 700;">3</div>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: {% if req_obj.status == 'IN_PROGRESS' or req_obj.status == 'COMPLETED' %}#fff{% else %}var(--text-muted){% endif %};">In Progress</div>
+                </div>
+
+                <div style="flex: 1; text-align: center; position: relative;">
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: {% if req_obj.status == 'COMPLETED' %}var(--status-completed){% else %}var(--bg-card){% endif %}; color: #fff; border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem auto; font-size: 0.9rem; font-weight: 700;">4</div>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: {% if req_obj.status == 'COMPLETED' %}#34d399{% else %}var(--text-muted){% endif %};">Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue Description -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem; color: #e2e8f0;">Issue Description</h3>
+            <p style="white-space: pre-wrap; color: var(--text-main); font-size: 1rem; line-height: 1.7; background: rgba(15, 23, 42, 0.4); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                {{ req_obj.description }}
+            </p>
+        </div>
+
+        <!-- Assigned Staff & Resolution Notes -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">Assigned Technician / Staff</div>
+                <div style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; color: #ffffff;">
+                    <i class="fa-solid fa-user-gear" style="color: var(--primary-accent);"></i>
+                    {% if req_obj.assigned_staff %}
+                        {{ req_obj.assigned_staff.first_name|default:req_obj.assigned_staff.username }}
+                    {% else %}
+                        <span style="color: var(--text-dim); font-weight: normal; italic;">Unassigned (Pending Staff Assignment)</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem;">Resolution / Staff Notes</div>
+                <div style="color: #ffffff; font-size: 0.95rem;">
+                    {% if req_obj.resolution_notes %}
+                        {{ req_obj.resolution_notes }}
+                    {% else %}
+                        <span style="color: var(--text-dim); italic;">No resolution notes added yet.</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Admin Update Action Card (Visible to Staff) -->
+    {% if is_staff %}
+        <div class="card" style="margin-bottom: 2rem; background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.3);">
+            <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: #c084fc; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-sliders"></i> Staff Management Actions
+            </h3>
+            
+            <form method="post" action="{% url 'staff_update_status' req_obj.id %}">
+                {% csrf_token %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Status</label>
+                        {{ staff_update_form.status }}
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Priority</label>
+                        {{ staff_update_form.priority }}
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Assign Technician</label>
+                        {{ staff_update_form.assigned_staff }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Resolution / Staff Progress Notes</label>
+                    {{ staff_update_form.resolution_notes }}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Update Status & Details
+                </button>
+            </form>
+        </div>
+    {% endif %}
+
+    <!-- Comments & Discussion Section -->
+    <div class="card">
+        <h3 style="font-size: 1.35rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fa-solid fa-comments" style="color: var(--primary-accent);"></i> Ticket Activity &amp; Discussion ({{ comments.count }})
+        </h3>
+
+        <!-- Add Comment Form -->
+        <form method="post" action="{% url 'request_detail' req_obj.id %}" style="margin-bottom: 2rem;">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ comment_form.comment }}
+            </div>
+            <button type="submit" class="btn btn-secondary btn-sm">
+                <i class="fa-solid fa-paper-plane"></i> Post Update / Comment
+            </button>
+        </form>
+
+        <!-- Comments List -->
+        {% if comments %}
+            <div class="timeline">
+                {% for comment in comments %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker" style="{% if comment.user.profile.is_staff_member %}border-color: #c084fc;{% endif %}"></div>
+                        <div class="timeline-content">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <strong style="color: #ffffff;">{{ comment.user.first_name|default:comment.user.username }}</strong>
+                                    <span class="role-tag {% if comment.user.profile.is_staff_member %}staff{% else %}student{% endif %}">
+                                        {{ comment.user.profile.get_role_display }}
+                                    </span>
+                                </div>
+                                <span style="font-size: 0.8rem; color: var(--text-dim);">
+                                    {{ comment.created_at|date:"M d, H:i" }}
+                                </span>
+                            </div>
+                            <p style="color: var(--text-main); font-size: 0.95rem; white-space: pre-wrap;">{{ comment.comment }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; color: var(--text-muted); padding: 1.5rem 0;">
+                No comments posted yet. Add a message above to communicate with maintenance technicians.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
