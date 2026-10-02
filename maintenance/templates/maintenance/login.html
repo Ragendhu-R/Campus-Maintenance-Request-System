@@ -1,0 +1,55 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Login - Campus Maintenance Request System{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 2rem auto;">
+    <div class="card" style="padding: 2.25rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="brand-icon" style="margin: 0 auto 1rem auto; width: 50px; height: 50px; font-size: 1.5rem;">
+                <i class="fa-solid fa-right-to-bracket"></i>
+            </div>
+            <h2 style="font-size: 1.75rem;">Welcome Back</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.35rem;">
+                Sign in to manage and submit maintenance requests
+            </p>
+        </div>
+
+        <form method="post" action="{% url 'login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="id_username">
+                    <i class="fa-solid fa-user" style="color: var(--primary-accent); margin-right: 0.3rem;"></i> Username
+                </label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.username.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_password">
+                    <i class="fa-solid fa-lock" style="color: var(--primary-accent); margin-right: 0.3rem;"></i> Password
+                </label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <ul class="errorlist">
+                        {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1rem;">
+                <i class="fa-solid fa-right-to-bracket"></i> Log In
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); font-size: 0.925rem; color: var(--text-muted);">
+            Don't have an account? <a href="{% url 'register' %}" style="font-weight: 600;">Register here</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
