@@ -1,0 +1,71 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Edit Request #{{ req_obj.id }} - Campus Maintenance Request System{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+        <a href="{% url 'request_detail' req_obj.id %}" class="btn btn-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left"></i> Back to Detail
+        </a>
+        <h1 style="font-size: 1.85rem;">Edit Maintenance Request #{{ req_obj.id }}</h1>
+    </div>
+
+    <div class="card">
+        <form method="post" action="{% url 'edit_request' req_obj.id %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="id_title">Request Title *</label>
+                {{ form.title }}
+                {% if form.title.errors %}
+                    <ul class="errorlist">{% for e in form.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label" for="id_category">Category *</label>
+                    {{ form.category }}
+                    {% if form.category.errors %}
+                        <ul class="errorlist">{% for e in form.category.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_priority">Priority Level *</label>
+                    {{ form.priority }}
+                    {% if form.priority.errors %}
+                        <ul class="errorlist">{% for e in form.priority.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_location">Location *</label>
+                {{ form.location }}
+                {% if form.location.errors %}
+                    <ul class="errorlist">{% for e in form.location.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="id_description">Description *</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <ul class="errorlist">{% for e in form.description.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                </button>
+                <a href="{% url 'request_detail' req_obj.id %}" class="btn btn-secondary btn-lg">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
