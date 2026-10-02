@@ -1,0 +1,133 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Home - Campus Maintenance Request System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="card" style="padding: 3rem 2.5rem; background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%), url('https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80') center/cover; position: relative; overflow: hidden; margin-bottom: 2.5rem; border-color: rgba(59, 130, 246, 0.25);">
+    <div style="max-width: 720px; position: relative; z-index: 2;">
+        <span class="badge badge-info" style="margin-bottom: 1rem; font-size: 0.85rem;">
+            <i class="fa-solid fa-building-user"></i> Official Campus Maintenance Portal
+        </span>
+        <h1 style="font-size: 2.75rem; margin-bottom: 1rem; background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            Fast, Efficient Campus Maintenance Reporting
+        </h1>
+        <p style="font-size: 1.15rem; color: var(--text-muted); margin-bottom: 2rem; line-height: 1.6;">
+            Report facility issues across hostels, academic blocks, and campus buildings in seconds. Track real-time progress, talk directly with technicians, and stay updated.
+        </p>
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            {% if user.is_authenticated %}
+                <a href="{% url 'create_request' %}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-circle-plus"></i> Submit Maintenance Request
+                </a>
+                <a href="{% url 'my_requests' %}" class="btn btn-secondary btn-lg">
+                    <i class="fa-solid fa-list-check"></i> My Requests
+                </a>
+                {% if is_staff %}
+                    <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary btn-lg" style="border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
+                        <i class="fa-solid fa-user-shield"></i> Staff Admin Portal
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-secondary btn-lg">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login to Report
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Real-time Campus Stats Metrics -->
+<h2 style="font-size: 1.4rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+    <i class="fa-solid fa-chart-line" style="color: var(--primary-accent);"></i> Campus System Live Overview
+</h2>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+            <i class="fa-solid fa-clipboard-list"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_requests }}</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ pending_requests }}</div>
+            <div class="stat-label">Pending Review</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ in_progress_requests }}</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ completed_requests }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Categories Overview -->
+<div style="margin-top: 3rem;">
+    <h2 style="font-size: 1.4rem; margin-bottom: 1.25rem;">Maintenance Categories Covered</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+        <div class="card card-hover">
+            <div style="font-size: 1.75rem; color: #60a5fa; margin-bottom: 0.75rem;"><i class="fa-solid fa-faucet-drip"></i></div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Plumbing & Water</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Tap leaks, blockages, washroom repairs, water pressure issues.</p>
+        </div>
+
+        <div class="card card-hover">
+            <div style="font-size: 1.75rem; color: #fbbf24; margin-bottom: 0.75rem;"><i class="fa-solid fa-bolt"></i></div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Electrical & Lighting</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Power outlets, ceiling light replacements, circuit breaker trips.</p>
+        </div>
+
+        <div class="card card-hover">
+            <div style="font-size: 1.75rem; color: #34d399; margin-bottom: 0.75rem;"><i class="fa-solid fa-fan"></i></div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">HVAC & Air Conditioning</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">AC cooling issues, ceiling fan repairs, ventilation systems.</p>
+        </div>
+
+        <div class="card card-hover">
+            <div style="font-size: 1.75rem; color: #c084fc; margin-bottom: 0.75rem;"><i class="fa-solid fa-chair"></i></div>
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Carpentry & Furniture</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Door lock repairs, study desk fixes, bed frame & cupboard fixes.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Test Credentials Box -->
+<div class="card" style="margin-top: 3rem; background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.3);">
+    <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <div style="font-size: 2rem; color: var(--primary-accent);"><i class="fa-solid fa-key"></i></div>
+        <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.25rem;">Quick Demo Accounts Available</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                You can register a new account as <strong>Student</strong> or <strong>Staff</strong>, or run sample seed data for instant testing!
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
