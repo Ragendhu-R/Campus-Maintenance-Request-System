@@ -1,0 +1,210 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Staff / Admin Maintenance Portal - Campus Maintenance Request System{% endblock %}
+
+{% block content %}
+<!-- Page Title & Staff Header -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <span class="role-tag staff" style="font-size: 0.8rem; padding: 0.25rem 0.6rem;">Staff &amp; Administration</span>
+            <h1 style="font-size: 2rem;">Campus Operations Center</h1>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Monitor, assign, and update all campus facility & maintenance requests</p>
+    </div>
+</div>
+
+<!-- Operations Metric Counters -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+            <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_all }}</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+            <i class="fa-solid fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ pending_count }}</div>
+            <div class="stat-label">Pending Action</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ in_progress_count }}</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ completed_count }}</div>
+            <div class="stat-label">Resolved</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ urgent_count }}</div>
+            <div class="stat-label">Urgent Issues</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filtering Bar -->
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <div class="search-input" style="position: relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+            <input type="text" name="search" class="form-control" style="padding-left: 2.6rem;" placeholder="Search title, student name, location..." value="{{ search_query }}">
+        </div>
+
+        <div class="select-input">
+            <select name="category" class="form-select">
+                <option value="">All Categories</option>
+                {% for code, label in category_choices %}
+                    <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="select-input">
+            <select name="priority" class="form-select">
+                <option value="">All Priorities</option>
+                {% for code, label in priority_choices %}
+                    <option value="{{ code }}" {% if priority_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="select-input">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="select-input">
+            <select name="assigned" class="form-select">
+                <option value="">All Assignments</option>
+                <option value="me" {% if assigned_filter == 'me' %}selected{% endif %}>Assigned to Me</option>
+                <option value="unassigned" {% if assigned_filter == 'unassigned' %}selected{% endif %}>Unassigned</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-filter"></i> Apply Filters
+        </button>
+
+        {% if search_query or category_filter or priority_filter or status_filter or assigned_filter %}
+            <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary">
+                <i class="fa-solid fa-xmark"></i> Reset
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- All Campus Requests Table with Quick Inline Update -->
+{% if requests %}
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Requester</th>
+                    <th>Location &amp; Issue</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assigned Staff</th>
+                    <th style="text-align: right;">Quick Status Change</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary-accent);">
+                            #{{ req.id }}
+                        </td>
+                        <td>
+                            <strong style="color: #ffffff; display: block;">{{ req.user.first_name|default:req.user.username }} {{ req.user.last_name }}</strong>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">
+                                {% if req.user.profile.department_or_hostel %}{{ req.user.profile.department_or_hostel }}{% else %}{{ req.user.email }}{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{% url 'request_detail' req.id %}" style="font-weight: 600; color: #ffffff;">
+                                {{ req.title }}
+                            </a>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                <i class="fa-solid fa-location-dot" style="color: #ef4444;"></i> {{ req.location }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-purple" style="font-size: 0.72rem;">
+                                {{ req.get_category_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="priority-tag priority-{{ req.priority }}">
+                                {{ req.get_priority_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ req.status_color_class }}">
+                                {% if req.status == 'PENDING' %}<i class="fa-solid fa-clock"></i>
+                                {% elif req.status == 'IN_PROGRESS' %}<i class="fa-solid fa-gear fa-spin"></i>
+                                {% elif req.status == 'COMPLETED' %}<i class="fa-solid fa-check-double"></i>
+                                {% else %}<i class="fa-solid fa-ban"></i>{% endif %}
+                                {{ req.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="font-size: 0.85rem;">
+                            {% if req.assigned_staff %}
+                                <span style="color: #c084fc; font-weight: 600;">
+                                    <i class="fa-solid fa-user-gear"></i> {{ req.assigned_staff.first_name|default:req.assigned_staff.username }}
+                                </span>
+                            {% else %}
+                                <span style="color: var(--text-dim); italic;">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center;">
+                                <a href="{% url 'request_detail' req.id %}" class="btn btn-secondary btn-sm" title="View & Manage Ticket">
+                                    <i class="fa-solid fa-sliders"></i> Manage
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem;">
+        <div style="font-size: 3rem; color: var(--text-dim); margin-bottom: 1rem;">
+            <i class="fa-solid fa-clipboard-check"></i>
+        </div>
+        <h3 style="font-size: 1.35rem; margin-bottom: 0.5rem;">No Campus Requests Found</h3>
+        <p style="color: var(--text-muted);">No requests match the current filter selection.</p>
+    </div>
+{% endif %}
+{% endblock %}
