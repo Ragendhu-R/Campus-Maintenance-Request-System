@@ -1,0 +1,32 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Confirm Delete Request - Campus Maintenance Request System{% endblock %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 3rem auto;">
+    <div class="card" style="border-color: rgba(239, 68, 68, 0.4); text-align: center; padding: 2.5rem 2rem;">
+        <div style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <h2 style="font-size: 1.6rem; margin-bottom: 0.75rem;">Delete Maintenance Request?</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;">
+            Are you sure you want to permanently remove request <strong>#{{ req_obj.id }}: {{ req_obj.title }}</strong>? This action cannot be undone.
+        </p>
+
+        <form method="post" action="{% url 'delete_request' req_obj.id %}">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <button type="submit" class="btn btn-danger btn-lg" style="flex: 1;">
+                    <i class="fa-solid fa-trash"></i> Delete Request
+                </button>
+                {% if user.profile.is_staff_member %}
+                    <a href="{% url 'staff_dashboard' %}" class="btn btn-secondary btn-lg" style="flex: 1;">Cancel</a>
+                {% else %}
+                    <a href="{% url 'my_requests' %}" class="btn btn-secondary btn-lg" style="flex: 1;">Cancel</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
