@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Campus Maintenance Request System{% endblock %}</title>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'maintenance/css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="app-header">
+        <div class="container">
+            <nav class="navbar">
+                <!-- Brand Logo -->
+                <a href="{% url 'home' %}" class="brand-logo">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-wrench"></i>
+                    </div>
+                    <span>Campus<span style="color: var(--primary-accent);">Fix</span></span>
+                </a>
+
+                <!-- Navigation Links -->
+                <ul class="nav-links">
+                    <li>
+                        <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                            <i class="fa-solid fa-house"></i> Home
+                        </a>
+                    </li>
+
+                    {% if user.is_authenticated %}
+                        {% if user.profile.is_staff_member %}
+                            <li>
+                                <a href="{% url 'staff_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}" style="color: #c084fc;">
+                                    <i class="fa-solid fa-user-shield"></i> Staff Portal
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <li>
+                            <a href="{% url 'my_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'my_requests' %}active{% endif %}">
+                                <i class="fa-solid fa-list-check"></i> My Requests
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="{% url 'create_request' %}" class="nav-link nav-cta">
+                                <i class="fa-solid fa-plus-circle"></i> New Request
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Auth Buttons / User Profile -->
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    {% if user.is_authenticated %}
+                        <div class="user-badge">
+                            <div class="avatar">
+                                {{ user.first_name|default:user.username|slice:":1"|upper }}
+                            </div>
+                            <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                                <span style="font-size: 0.88rem; font-weight: 600;">{{ user.first_name|default:user.username }}</span>
+                                <span class="role-tag {% if user.profile.is_staff_member %}staff{% else %}student{% endif %}">
+                                    {{ user.profile.get_role_display }}
+                                </span>
+                            </div>
+                        </div>
+                        <a href="{% url 'logout' %}" class="btn btn-secondary btn-sm" title="Log Out">
+                            <i class="fa-solid fa-sign-out-alt"></i> Logout
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn btn-secondary">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-primary">
+                            <i class="fa-solid fa-user-plus"></i> Register
+                        </a>
+                    {% endif %}
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Alert Messages -->
+            {% if messages %}
+                <div class="messages-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <div style="display: flex; align-items: center; gap: 0.6rem;">
+                                {% if message.tags == 'success' %}
+                                    <i class="fa-solid fa-circle-check"></i>
+                                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-circle-info"></i>
+                                {% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                            <button onclick="this.parentElement.remove()" style="background:none; border:none; color:inherit; cursor:pointer; font-size: 1.1rem;">
+                                &times;
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container">
+            <p>&copy; 2026 Campus Maintenance Request System &bull; Built with Django &amp; Modern UI</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
