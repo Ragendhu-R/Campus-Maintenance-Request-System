@@ -1,0 +1,101 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}Submit Maintenance Request - Campus Maintenance Request System{% endblock %}
+
+{% block content %}
+<div style="max-width: 760px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+        <a href="{% url 'my_requests' %}" class="btn btn-secondary btn-sm" title="Back to My Requests">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+        <h1 style="font-size: 1.85rem;">Submit Campus Maintenance Request</h1>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.75rem;">
+        <!-- Request Form -->
+        <div class="card">
+            <form method="post" action="{% url 'create_request' %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label" for="id_title">
+                        <i class="fa-solid fa-heading" style="color: var(--primary-accent);"></i> Request Title *
+                    </label>
+                    {{ form.title }}
+                    <div class="form-text">Short descriptive title for the issue</div>
+                    {% if form.title.errors %}
+                        <ul class="errorlist">{% for e in form.title.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="id_category">
+                            <i class="fa-solid fa-list" style="color: var(--primary-accent);"></i> Category *
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                            <ul class="errorlist">{% for e in form.category.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="id_priority">
+                            <i class="fa-solid fa-triangle-exclamation" style="color: var(--primary-accent);"></i> Priority Level *
+                        </label>
+                        {{ form.priority }}
+                        {% if form.priority.errors %}
+                            <ul class="errorlist">{% for e in form.priority.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_location">
+                        <i class="fa-solid fa-location-dot" style="color: #ef4444;"></i> Specific Location *
+                    </label>
+                    {{ form.location }}
+                    <div class="form-text">e.g. Hostel Block B - Room 302, Library 2nd Floor Study Desk 14</div>
+                    {% if form.location.errors %}
+                        <ul class="errorlist">{% for e in form.location.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="id_description">
+                        <i class="fa-solid fa-align-left" style="color: var(--primary-accent);"></i> Detailed Description *
+                    </label>
+                    {{ form.description }}
+                    <div class="form-text">Provide full context (e.g. water leakage timing, broken desk leg, socket short circuit)</div>
+                    {% if form.description.errors %}
+                        <ul class="errorlist">{% for e in form.description.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Request
+                    </button>
+                    <a href="{% url 'my_requests' %}" class="btn btn-secondary btn-lg">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Helpful Side Panel -->
+        <div>
+            <div class="card" style="background: rgba(30, 41, 59, 0.6); border-color: rgba(59, 130, 246, 0.2);">
+                <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: #60a5fa;">
+                    <i class="fa-solid fa-lightbulb"></i> Submission Tips
+                </h3>
+                <ul style="padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.75rem;">
+                    <li>Be specific about the <strong>location</strong> so maintenance technicians can locate the issue without delays.</li>
+                    <li>Select <strong>Urgent</strong> priority only for immediate safety hazards or major water/electrical leaks.</li>
+                    <li>After submitting, you can track progress and leave notes on your ticket page.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
