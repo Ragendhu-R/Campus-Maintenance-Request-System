@@ -1,0 +1,204 @@
+{% extends 'maintenance/base.html' %}
+
+{% block title %}My Maintenance Requests - Campus Maintenance Request System{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="font-size: 2rem; margin-bottom: 0.35rem;">My Maintenance Requests</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Track, manage, and inspect all facility issues you have reported</p>
+    </div>
+    <a href="{% url 'create_request' %}" class="btn btn-primary">
+        <i class="fa-solid fa-plus-circle"></i> Submit New Request
+    </a>
+</div>
+
+<!-- Personal Request Metrics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">
+            <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-label">Total Submitted</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+            <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.pending }}</div>
+            <div class="stat-label">Pending Review</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+            <i class="fa-solid fa-gears"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.in_progress }}</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+            <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-value">{{ stats.completed }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filtering Bar -->
+<div class="filter-bar">
+    <form method="get" class="filter-form">
+        <div class="search-input" style="position: relative;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+            <input type="text" name="search" class="form-control" style="padding-left: 2.6rem;" placeholder="Search title, description, location..." value="{{ search_query }}">
+        </div>
+
+        <div class="select-input">
+            <select name="category" class="form-select">
+                <option value="">All Categories</option>
+                {% for code, label in category_choices %}
+                    <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="select-input">
+            <select name="priority" class="form-select">
+                <option value="">All Priorities</option>
+                {% for code, label in priority_choices %}
+                    <option value="{{ code }}" {% if priority_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="select-input">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                {% for code, label in status_choices %}
+                    <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-filter"></i> Filter
+        </button>
+
+        {% if search_query or category_filter or priority_filter or status_filter %}
+            <a href="{% url 'my_requests' %}" class="btn btn-secondary" title="Clear Filters">
+                <i class="fa-solid fa-xmark"></i> Clear
+            </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Requests Data Table -->
+{% if requests %}
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Request Details</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Date Reported</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                    <tr>
+                        <td style="font-weight: 700; color: var(--primary-accent);">#{{ req.id }}</td>
+                        <td>
+                            <a href="{% url 'request_detail' req.id %}" style="font-weight: 600; color: #ffffff; font-size: 1.05rem;">
+                                {{ req.title }}
+                            </a>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
+                                {{ req.description }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-purple" style="font-size: 0.72rem;">
+                                {{ req.get_category_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="font-size: 0.9rem;">
+                                <i class="fa-solid fa-location-dot" style="color: #ef4444; margin-right: 0.3rem;"></i> {{ req.location }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="priority-tag priority-{{ req.priority }}">
+                                {{ req.get_priority_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ req.status_color_class }}">
+                                {% if req.status == 'PENDING' %}<i class="fa-solid fa-clock"></i>
+                                {% elif req.status == 'IN_PROGRESS' %}<i class="fa-solid fa-gear fa-spin"></i>
+                                {% elif req.status == 'COMPLETED' %}<i class="fa-solid fa-check-double"></i>
+                                {% else %}<i class="fa-solid fa-ban"></i>{% endif %}
+                                {{ req.get_status_display }}
+                            </span>
+                        </td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">
+                            {{ req.date_reported|date:"M d, Y &bull; H:i" }}
+                        </td>
+                        <td style="text-align: right;">
+                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end;">
+                                <a href="{% url 'request_detail' req.id %}" class="btn btn-secondary btn-sm" title="View Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                {% if req.status != 'COMPLETED' %}
+                                    <a href="{% url 'edit_request' req.id %}" class="btn btn-secondary btn-sm" title="Edit Request">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'delete_request' req.id %}" class="btn btn-danger btn-sm" title="Delete Request">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem;">
+        <div style="font-size: 3rem; color: var(--text-dim); margin-bottom: 1rem;">
+            <i class="fa-solid fa-inbox"></i>
+        </div>
+        <h3 style="font-size: 1.35rem; margin-bottom: 0.5rem;">No Maintenance Requests Found</h3>
+        <p style="color: var(--text-muted); max-width: 480px; margin: 0 auto 1.5rem auto;">
+            {% if search_query or category_filter or priority_filter or status_filter %}
+                No requests matched your filter criteria. Try clearing search filters.
+            {% else %}
+                You haven't submitted any maintenance requests yet. Need something fixed in your room, hostel, or lab?
+            {% endif %}
+        </p>
+        {% if search_query or category_filter or priority_filter or status_filter %}
+            <a href="{% url 'my_requests' %}" class="btn btn-secondary">Clear Filters</a>
+        {% else %}
+            <a href="{% url 'create_request' %}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-plus-circle"></i> Create First Request
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}
